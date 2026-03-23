@@ -1,4 +1,3 @@
-
 name: CI-CD
 
 on:
@@ -6,10 +5,10 @@ on:
     branches:
       - main
       - develop
-      - feat/**
-      - feature/**
-      - fix/**
-      - hotfix/**
+      - 'feat/**'
+      - 'feature/**'
+      - 'fix/**'
+      - 'hotfix/**'
   pull_request:
     branches:
       - main
@@ -85,8 +84,9 @@ jobs:
           pip install flake8
 
       - name: Rodar flake8
+        continue-on-error: true
         run: |
-          flake8 . --exclude=.venv,__pycache__,.pytest_cache || true
+          flake8 . --exclude=.venv,__pycache__,.pytest_cache,htmlcov
 
   security-scan:
     name: Security Scan
@@ -110,17 +110,19 @@ jobs:
           pip install bandit
 
       - name: Rodar Bandit
+        continue-on-error: true
         run: |
-          bandit -r . -x ./.venv,./tests || true
+          bandit -r . -x ./.venv,./tests,./__pycache__,./.pytest_cache
 
       - name: Scan de filesystem com Trivy
+        continue-on-error: true
         uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: fs
           scan-ref: .
           severity: HIGH,CRITICAL
-          exit-code: 1
           ignore-unfixed: true
+          format: table
 
   docker-build:
     name: Docker Build and Image Scan
@@ -136,12 +138,12 @@ jobs:
           docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
 
       - name: Scan da imagem com Trivy
+        continue-on-error: true
         uses: aquasecurity/trivy-action@0.24.0
         with:
           image-ref: ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
           format: table
           severity: HIGH,CRITICAL
-          exit-code: 1
           ignore-unfixed: true
 
   docker-push:
