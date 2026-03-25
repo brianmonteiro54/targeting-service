@@ -1,8 +1,81 @@
-# targeting-service (Python)
-
-Este é o serviço de regras de segmentação (targeting) do projeto ToggleMaster. Ele é responsável por gerenciar regras complexas (ex: "50% dos usuários", "usuários do país X") para uma feature flag específica.
-
-**IMPORTANTE:** Este serviço também é protegido e depende que o `auth-service` esteja rodando (ex: em `http://localhost:8001`).
+# Targeting Service
+ 
+Microsserviço de regras de segmentação da plataforma **ToggleMaster**, responsável por definir para quais usuários ou grupos uma feature flag será ativada.
+ 
+## Visão Geral
+ 
+O Targeting Service gerencia as regras de direcionamento (targeting rules) associadas às feature flags. Ele permite criar condições como "ativar flag X apenas para usuários do grupo beta" ou "liberar para 20% dos usuários da região Sul", possibilitando releases graduais e controlados.
+ 
+## Tecnologias
+ 
+| Componente | Tecnologia |
+|---|---|
+| Linguagem | Python 3.11 |
+| Framework | Flask + Gunicorn |
+| Banco de Dados | PostgreSQL (RDS) |
+| Container | Docker (multi-stage build) |
+| Orquestração | Kubernetes (EKS) |
+| Registry | Amazon ECR |
+| CI/CD | GitHub Actions + ArgoCD (GitOps) |
+ 
+## Endpoints
+ 
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/health` | Health check do serviço |
+| `POST` | `/targeting` | Cria uma nova regra de segmentação |
+| `GET` | `/targeting` | Lista todas as regras |
+| `GET` | `/targeting/<id>` | Retorna uma regra específica |
+| `PUT` | `/targeting/<id>` | Atualiza uma regra |
+| `DELETE` | `/targeting/<id>` | Remove uma regra |
+ 
+## Variáveis de Ambiente
+ 
+| Variável | Descrição |
+|---|---|
+| `DATABASE_URL` | String de conexão PostgreSQL |
+| `AUTH_SERVICE_URL` | URL do Auth Service para validação de API Keys |
+ 
+## Pipeline CI/CD (DevSecOps)
+ 
+O workflow do GitHub Actions executa os seguintes estágios:
+ 
+1. **Build & Unit Test** — Instalação de dependências e execução dos testes com `pytest`
+2. **Linter** — Análise estática com `flake8`
+3. **Security Scan** — SAST com `bandit` + SCA com `Trivy` (bloqueia vulnerabilidades críticas)
+4. **Docker Build & Push** — Build da imagem, scan com Trivy e push para o ECR
+5. **GitOps Update** — Atualiza a tag da imagem no repositório `deploy-targeting-service`
+ 
+## Deploy (GitOps)
+ 
+O deploy segue o modelo GitOps com ArgoCD. Ao final do pipeline de CI, a tag da imagem é atualizada automaticamente no repositório [`deploy-targeting-service`](https://github.com/brianmonteiro54/deploy-targeting-service), e o ArgoCD sincroniza a mudança no cluster EKS.
+ 
+## Executando Localmente
+ 
+```bash
+# Configurar variáveis
+cp .env.example .env
+ 
+# Instalar dependências
+pip install -r requirements.txt
+ 
+# Rodar
+python app.py
+```
+ 
+## Estrutura do Projeto
+ 
+```
+├── .github/workflows/ci.yaml   # Pipeline CI/CD
+├── db/init.sql                  # Script de inicialização do banco
+├── tests/test_app.py            # Testes unitários
+├── Dockerfile                   # Build multi-stage (Python)
+├── app.py                       # Aplicação Flask
+├── requirements.txt             # Dependências Python
+├── requirements-test.txt        # Dependências de teste
+├── setup.cfg                    # Configuração do flake8/pytest
+└── README.md
+```
 
 ## 📦 Pré-requisitos (Local)
 
