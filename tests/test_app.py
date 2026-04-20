@@ -4,6 +4,7 @@ import pytest
 import requests
 import psycopg2
 import prometheus_client
+import sys
 
 @pytest.fixture
 def app_module(monkeypatch):
