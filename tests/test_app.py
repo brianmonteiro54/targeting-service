@@ -6,7 +6,6 @@ import psycopg2
 import prometheus_client
 
 @pytest.fixture
-@pytest.fixture
 def app_module(monkeypatch):
     prometheus_client.REGISTRY = prometheus_client.CollectorRegistry()
     
