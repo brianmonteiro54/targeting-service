@@ -1,20 +1,24 @@
-import importlib
 from unittest.mock import MagicMock
 import pytest
 import requests
 import psycopg2
-
+import prometheus_client
+import sys
 
 @pytest.fixture
 def app_module(monkeypatch):
+    prometheus_client.REGISTRY = prometheus_client.CollectorRegistry()
+    
     monkeypatch.setenv("DATABASE_URL", "postgresql://user:pass@localhost:5432/testdb")
     monkeypatch.setenv("AUTH_SERVICE_URL", "http://auth-service")
 
     fake_pool = MagicMock()
     monkeypatch.setattr("psycopg2.pool.SimpleConnectionPool", lambda *args, **kwargs: fake_pool)
 
+    if "app" in sys.modules:
+        del sys.modules["app"]
+    
     import app
-    importlib.reload(app)
     return app
 
 

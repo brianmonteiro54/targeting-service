@@ -8,6 +8,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from functools import wraps
 import logging
+from prometheus_flask_exporter import PrometheusMetrics
 
 # Configura o logging
 logging.basicConfig(level=logging.INFO)
@@ -17,6 +18,10 @@ log = logging.getLogger(__name__)
 load_dotenv()
 
 app = Flask(__name__)
+
+metrics = PrometheusMetrics(app)
+metrics.info("app_info", "Application info", version="1.0.0")
+
 
 # --- Configuração ---
 DATABASE_URL = os.getenv("DATABASE_URL")
